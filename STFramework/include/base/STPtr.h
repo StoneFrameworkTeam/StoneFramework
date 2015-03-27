@@ -52,6 +52,8 @@ private:
     T* m_obj;
 };
 
+
+//thread safe
 template <class T>
 class STSharePtr
 {
@@ -139,6 +141,88 @@ private:
 };
 
 
+/*
+//not thread safe
+//T* must implement addRef and removeRef function. obj must delete it's self in removeRef when ref count decline to 0
+template <class T>
+class STIntrusiveSharePtr
+{
+public:
+    explicit STIntrusiveSharePtr(T* obj)
+    {
+        m_obj = obj;
+        addRef();
+    }
+    STIntrusiveSharePtr(const STIntrusiveSharePtr& other)
+    {
+        if (this != &other) {
+            this->m_obj = other.m_obj;
+            addRef();
+        }
+    }
+    ~STIntrusiveSharePtr()
+    {
+        removeRef();
+    }
 
+    void addRef()
+    {
+        m_obj->addRef();
+    }
+    void removeRef()
+    {
+        m_obj->removeRef();
+    }
+
+    T* get() const
+    {
+        return m_obj;
+    }
+
+    T* operator->() const
+    {
+        return m_obj;
+    }
+
+    STIntrusiveSharePtr& operator=(const STIntrusiveSharePtr& other)
+    {
+        if (this != &other) {
+            this->m_obj = other.m_obj;
+            addRef();
+        }
+        return *this;
+    }
+    STIntrusiveSharePtr& operator=(T* obj)
+    {
+        if (this->m_obj != obj) {
+            removeRef();
+
+            this->m_obj = obj;
+        }
+        return *this;
+    }
+    bool operator==(const STIntrusiveSharePtr& other)
+    {
+        return (m_obj = other.m_obj);
+    }
+private:
+    T* m_obj;
+};
+*/
 
 #endif // ST_PTR_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

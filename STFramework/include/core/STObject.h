@@ -3,9 +3,9 @@
 
 #include "event/STEvent.h"
 #include "base/STGuard.h"
+#include "core/STIEventDispatcher.h"
 
 
-class EventDispatcher;
 class STObject
 {
 public:
@@ -23,26 +23,13 @@ private:
 
  //static, for event
 public:
-    static void postEvent(STEventCarrier e, STObject* receiver = NULL);
-    static bool sendEvent(STEventCarrier e, STObject* receiver = NULL);
+    static void postGlobalEvent(STEventCarrier e, STObject* receiver = NULL);
+    static bool sendGlobalEvent(STEventCarrier e, STObject* receiver = NULL);
 protected:
-    static void registerGlobalEventDispatcher(EventDispatcher* disPatcher);
-    static void unRegisterGlobalEventDispatcher(EventDispatcher* disPatcher);
+    static void registerGlobalEventDispatcher(STIEventDispatcher* disPatcher);
+    static void unRegisterGlobalEventDispatcher(STIEventDispatcher* disPatcher);
 private:
-    static EventDispatcher* s_eventDispatcher;
-};
-
-
-
-class EventDispatcher
-{
-public:
-    virtual ~EventDispatcher(){}
-    virtual void postEvent(STEventCarrier e, STObject* receiver = NULL) = 0;
-    virtual bool sendEvent(STEventCarrier e, STObject* receiver = NULL) = 0;
-
-    virtual void addEventFilter(STObject* filter, STEvent e) = 0;
-    virtual void removeEventFilter(STObject* filter, STEvent e) = 0;
+    static STIEventDispatcher* s_eventDispatcher;
 };
 
 

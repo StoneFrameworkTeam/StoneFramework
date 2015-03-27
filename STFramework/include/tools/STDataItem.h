@@ -2,6 +2,7 @@
 #define ST_DATA_ITEM_H
 
 #include <vector>
+#include <map>
 
 #include "base/STCommonDefine.h"
 #include "base/STPtr.h"
@@ -65,15 +66,43 @@ public:
     STString serialToStr();
 
 private:
-    class PrivateFunc;
     class RealData;
     typedef STSharePtr<RealData> RealDataPtr;
     STDataItem(const RealDataPtr &realDataPtr);//for vector
+
+    class PrivateFunc;
 
     RealDataPtr m_data;
 };
 
 
+class STDataItem::RealData
+{
+public:
+    RealData();
+    Type type() const;
+    void changeValue(bool value);
+    void changeValue(int value);
+    void changeValue(const STString &value);
+    bool boolValue();
+    int intValue();
+    STString strValue();
+
+private:
+    friend class STDataItem;
+    Type                                    m_type;
+    struct
+    {
+        bool boolValue;
+        int intValue;
+        STString strValue;
+    }                                       m_value;
+
+    STString                                m_tagName;
+    std::multimap<STString, RealDataPtr>    m_childs;
+
+    int m_refCount;
+ };
 
 
 #endif // ST_DATA_ITEM_H

@@ -250,68 +250,6 @@ private:
     PrivateFunc();
 };
 
-class STDataItem::RealData
-{
-public:
-    RealData()
-        : m_type(Type_Parent)
-        , m_tagName("")
-    {}
-
-    Type type() const
-    {
-        return m_type;
-    }
-
-    void changeValue(bool value)
-    {
-        m_type = Type_Bool;
-        m_value.boolValue = value;
-    }
-
-    void changeValue(int value)
-    {
-        m_type = Type_Int;
-        m_value.intValue = value;
-    }
-
-    void changeValue(const STString &value)
-    {
-        m_type = Type_String;
-        m_value.strValue = value;
-    }
-
-    bool boolValue()
-    {
-        return m_value.boolValue;
-    }
-
-    int intValue()
-    {
-        return m_value.intValue;
-    }
-
-    STString strValue()
-    {
-        return m_value.strValue;
-    }
-
-private:
-    friend class STDataItem;
-    Type                                    m_type;
-    struct
-    {
-        bool boolValue;
-        int intValue;
-        STString strValue;
-    }                                       m_value;
-
-    STString                                m_tagName;
-    std::multimap<STString, RealDataPtr>    m_childs;
-};
-
-
-
 
 STDataItem::STDataItem(const STString &tagName)
     : m_data(new RealData())
@@ -604,6 +542,51 @@ STString STDataItem::serialToStr()
 
 
 
+//for class STDataItem::RealData
+STDataItem::RealData::RealData()
+    : m_type(Type_Parent)
+    , m_tagName("")
+    , m_refCount(0)
+{}
+
+STDataItem::Type STDataItem::RealData::type() const
+{
+    return m_type;
+}
+
+void STDataItem::RealData::changeValue(bool value)
+{
+    m_type = Type_Bool;
+    m_value.boolValue = value;
+}
+
+void STDataItem::RealData::changeValue(int value)
+{
+    m_type = Type_Int;
+    m_value.intValue = value;
+}
+
+void STDataItem::RealData::changeValue(const STString &value)
+{
+    m_type = Type_String;
+    m_value.strValue = value;
+}
+
+bool STDataItem::RealData::boolValue()
+{
+    return m_value.boolValue;
+}
+
+int STDataItem::RealData::intValue()
+{
+    return m_value.intValue;
+}
+
+STString STDataItem::RealData::strValue()
+{
+    return m_value.strValue;
+}
+//for class STDataItem::RealData end
 
 
 

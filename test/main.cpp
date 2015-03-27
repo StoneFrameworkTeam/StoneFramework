@@ -96,20 +96,20 @@ public:
     {
         while (1) {
             STEventCarrier e1(new STEvent("eventType1"));
-            STObject::postEvent(e1);
+            STObject::postGlobalEvent(e1);
 
             STEventCarrier e2(new STEvent("eventType2"));
-            STObject::postEvent(e2);
+            STObject::postGlobalEvent(e2);
 
             STEventCarrier e3(new STEvent("eventType3"));
-            STObject::postEvent(e3);
+            STObject::postGlobalEvent(e3);
 
 
-            STObject::postEvent(STEventCarrier(new STEvent("eventType1-1")));
-            STObject::postEvent(STEventCarrier(new STEvent("forDel1")));
+            STObject::postGlobalEvent(STEventCarrier(new STEvent("eventType1-1")));
+            STObject::postGlobalEvent(STEventCarrier(new STEvent("forDel1")));
 
             STEventCarrier e5(new STEvent("eventType5"));
-            STObject::postEvent(e5);
+            STObject::postGlobalEvent(e5);
 
             usleep(1000*100);
         }
@@ -245,6 +245,8 @@ void testDataItem()
 
 int main(int argc, char *argv[])
 {
+    STUNUSED(argc);
+    STUNUSED(argv);
     //fdwaiterTest();
     //waiterTest();
     //testSharePtr();

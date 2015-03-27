@@ -37,30 +37,30 @@ STGuard STObject::getGuard() const
 
 
 //static, for event
-EventDispatcher* STObject::s_eventDispatcher = NULL;
+STIEventDispatcher* STObject::s_eventDispatcher = NULL;
 
-void STObject::registerGlobalEventDispatcher(EventDispatcher* disPatcher)
+void STObject::registerGlobalEventDispatcher(STIEventDispatcher* disPatcher)
 {
     if (NULL != disPatcher) {
         s_eventDispatcher = disPatcher;
     }
 }
 
-void STObject::unRegisterGlobalEventDispatcher(EventDispatcher* disPatcher)
+void STObject::unRegisterGlobalEventDispatcher(STIEventDispatcher* disPatcher)
 {
     if (disPatcher == s_eventDispatcher) {
         s_eventDispatcher = NULL;
     }
 }
 
-void STObject::postEvent(STEventCarrier e, STObject* receiver)
+void STObject::postGlobalEvent(STEventCarrier e, STObject* receiver)
 {
     if (NULL != s_eventDispatcher) {
         s_eventDispatcher->postEvent(e, receiver);
     }
 }
 
-bool STObject::sendEvent(STEventCarrier e, STObject* receiver)
+bool STObject::sendGlobalEvent(STEventCarrier e, STObject* receiver)
 {
     bool ret = false;
     if (NULL != s_eventDispatcher) {
