@@ -10,7 +10,7 @@ public:
     STEvent(const STString& typeName = "");
     virtual ~STEvent(){}
 
-    STString typeName() const;
+    STString name() const;
     bool isReceived() const;
 
     void accept();

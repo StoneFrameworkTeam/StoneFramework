@@ -5,6 +5,7 @@
 #include "base/STPtr.h"
 #include <list>
 #include "tools/STDataItem.h"
+#include "net/STNetIdentify.h"
 
 void fdwaiterTest()
 {
@@ -127,7 +128,7 @@ public:
 
     virtual void eventHappen(STEventCarrier e)
     {
-        std::cout<< m_name << "->eventHappen, e.typeName()=" << e->typeName() << std::endl;
+        std::cout<< m_name << "->eventHappen, e.typeName()=" << e->name() << std::endl;
     }
 private:
     STString m_name;
@@ -243,17 +244,38 @@ void testDataItem()
     root2.saveToFile(xmlPath2);
 }
 
+void testSTNetIdentify()
+{
+    STNetIdentify id1;
+    id1.setName("idName");
+    id1.setIp("192.168.1.1");
+    id1.setPort(1234);
+
+    std::cout<<id1.toSerialString()<<std::endl;
+
+    STNetIdentify id2;
+    id2.fromSerialString(id1.toSerialString());
+
+    //id2.setPort(321);
+    std::cout<<id2.toSerialString()<<std::endl;
+
+    std::cout<<"id1 == id2 is:"<<((id1==id2)? "true" : "false")<<std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     STUNUSED(argc);
     STUNUSED(argv);
+
     //fdwaiterTest();
     //waiterTest();
     //testSharePtr();
     //testGuard();
     //testListErase();
     //testCoreApplication(argc, argv);
-    testDataItem();
+    //testDataItem();
+    testSTNetIdentify();
+
     return 0;
 }
 

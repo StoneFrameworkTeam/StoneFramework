@@ -142,7 +142,7 @@ public:
             ePkg.getReceiver()->eventHappen(ePkg.getEvent());
         }
         else {
-            FilterMap::iterator mapItor = m_typeToFilter.find(ePkg.getEvent()->typeName());
+            FilterMap::iterator mapItor = m_typeToFilter.find(ePkg.getEvent()->name());
             if ( mapItor != m_typeToFilter.end() ) {
                 FilterList::iterator listItor = mapItor->second.begin();
                 for (; listItor != mapItor->second.end(); ++listItor) {
@@ -161,7 +161,7 @@ public:
 
     void addEventFilter(STObject* filter, STEvent e)
     {
-        FilterMap::iterator mapItor = m_typeToFilter.find(e.typeName());
+        FilterMap::iterator mapItor = m_typeToFilter.find(e.name());
         if ( mapItor != m_typeToFilter.end() ) {
             FilterList::iterator listItor = mapItor->second.begin();
             for (; listItor != mapItor->second.end(); ++listItor) {
@@ -181,13 +181,13 @@ public:
         else {
             FilterList filterList;
             filterList.push_back(SafeEventFilter(filter));
-            m_typeToFilter[e.typeName()] = filterList;
+            m_typeToFilter[e.name()] = filterList;
         }
     }
 
     void removeEventFilter(STObject* filter, STEvent e)
     {
-        FilterMap::iterator mapItor = m_typeToFilter.find(e.typeName());
+        FilterMap::iterator mapItor = m_typeToFilter.find(e.name());
         if ( mapItor != m_typeToFilter.end() ) {
             FilterList::iterator listItor = mapItor->second.begin();
             for (; listItor != mapItor->second.end(); ++listItor) {

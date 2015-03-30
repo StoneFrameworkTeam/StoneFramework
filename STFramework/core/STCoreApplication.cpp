@@ -13,12 +13,12 @@ STCoreApplication::STCoreApplication(int &argc, char **argv)
     STUNUSED(argc);
     STUNUSED(argv);
 
-    registerGlobalEventDispatcher(this);
+    setGlobalEventDispatcher(this);
 }
 
 STCoreApplication::~STCoreApplication()
 {
-    unRegisterGlobalEventDispatcher(this);
+    setGlobalEventDispatcher(NULL);
 }
 
 STString STCoreApplication::applicationName() const

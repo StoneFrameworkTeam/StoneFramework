@@ -55,6 +55,11 @@ STThread::~STThread()
     }
 }
 
+STString STThread::name()
+{
+    return m_data->name;
+}
+
 STThread::ExecRet STThread::exec()
 {
     ExecRet ret = ExecRet_Success;

@@ -19,16 +19,21 @@ public:
     STThread(const STString& name = "");
     virtual ~STThread();
 
+    STString name();
+    virtual void main() = 0;//thread main function
+
     ExecRet exec();
     void join();
 
     bool isRunning() const;
-    void askToStop();//ask thread to exit
-    void askAndWaitToStop(int s=2);//ask and wait thread to exit
+    void askToStop();//ask thread to exit, not wait
+    void askAndWaitToStop(int s=2);//ask and wait thread to exit, second
 
     bool isNeedStop() const;
-    virtual void main() = 0;//thread main function
-    virtual void dealAfterKill() {}//if exit not normal, this function will be run
+    virtual void dealAfterKill() //if exit not normal, this function will be run
+    {
+        //you may need free you resource here when exception happen
+    }
 
 private:
     STThread(const STThread&);

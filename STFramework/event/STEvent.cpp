@@ -7,7 +7,7 @@ STEvent::STEvent(const STString& typeName)
 {
 }
 
-STString STEvent::typeName() const
+STString STEvent::name() const
 {
     return m_typeName;
 }

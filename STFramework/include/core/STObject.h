@@ -26,8 +26,7 @@ public:
     static void postGlobalEvent(STEventCarrier e, STObject* receiver = NULL);
     static bool sendGlobalEvent(STEventCarrier e, STObject* receiver = NULL);
 protected:
-    static void registerGlobalEventDispatcher(STIEventDispatcher* disPatcher);
-    static void unRegisterGlobalEventDispatcher(STIEventDispatcher* disPatcher);
+    static void setGlobalEventDispatcher(STIEventDispatcher* disPatcher);
 private:
     static STIEventDispatcher* s_eventDispatcher;
 };
