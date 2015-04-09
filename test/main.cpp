@@ -7,26 +7,6 @@
 #include "tools/STDataItem.h"
 #include "net/STNetIdentify.h"
 
-void fdwaiterTest()
-{
-    STFDWaiter waiter("/dev/test");
-
-
-    char buf[100] = {0};
-    while (1) {
-        STWaitResult waitRet = waiter.wait(-1);
-        if (STWaitResult_Happen == waitRet) {
-            int readRet = read(waiter.fd(), buf, sizeof(buf));
-            if (readRet > 0) {
-                std::cout<<("waiter happen, read:")<< buf <<std::endl;
-            }
-            else {
-                std::cout<<("waitError\n");
-            }
-        }
-    }
-}
-
 class testThread : public STThread
 {
 public:
@@ -247,7 +227,7 @@ void testDataItem()
 void testSTNetIdentify()
 {
     STNetIdentify id1;
-    id1.setName("idName");
+    //id1.setName("idName");
     id1.setIp("192.168.1.1");
     id1.setPort(1234);
 
