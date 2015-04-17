@@ -28,6 +28,7 @@ public:
     bool startToListen();//not block, this action will start in a new thread.
     void stopListen();
 
+protected:
     virtual void fdChanged(int fd, FdChangeType changeType) = 0;//will be called in listtenThread
 
 private:

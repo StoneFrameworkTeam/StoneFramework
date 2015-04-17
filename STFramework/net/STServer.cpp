@@ -6,13 +6,11 @@
 #include "thread/STThread.h"
 #include "net/STFdListeenerBase.h"
 
-const STString ServerListenConnectThreadPrefix  = "ServerListenConnectThread_";
+const STString ServerListenConnectThreadPrefix  =  "ServerListenConnectThread_";
 const STString ServerListenDataThreadPrefix     =  "ServerListenDataThread_";
-const int ServerDefaultListenPort                      =  9321;
+const int ServerDefaultListenPort               =  9321;
+const char FrameHeadTag[]                       =  "\0\0^*#*##*#*^\0\0";
 
-
-class ListenConnectThread;//listen client's connect action
-class ListenDataThread;//listen data sent from connected client
 
 class STServer::Impl
 {
@@ -129,14 +127,15 @@ private:
             , m_owner(owner)
         {}
 
+    private:
         virtual void fdChanged(int fd, FdChangeType changeType)
         {
             STUNUSED(fd);
             STUNUSED(changeType);
         }
-
     private:
         STServer::Impl* m_owner;
+        //std::ma
     };
 
 private:
