@@ -25,8 +25,7 @@ public:
 
     void addFd(int fd);
     void removeFd(int fd);
-    bool startToListen();//not block, this action will start in a new thread.
-    void stopListen();
+    void stopListen();//not block, this action will start in a new thread.
 
 protected:
     virtual void fdChanged(int fd, FdChangeType changeType) = 0;//will be called in listtenThread

@@ -2,14 +2,17 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include "net/STNetDefine.h"
 #include "net/STServer.h"
 #include "thread/STThread.h"
 #include "net/STFdListeenerBase.h"
+#include "net/SocketFdReader.h"
+#include "net/STNetEvent.h"
+
+#include <iostream>
 
 const STString ServerListenConnectThreadPrefix  =  "ServerListenConnectThread_";
 const STString ServerListenDataThreadPrefix     =  "ServerListenDataThread_";
-const int ServerDefaultListenPort               =  9321;
-const char FrameHeadTag[]                       =  "\0\0^*#*##*#*^\0\0";
 
 
 class STServer::Impl
@@ -33,25 +36,33 @@ public:
 
     bool startListen(int port)
     {
-        //TBD
-        STUNUSED(port);
-        return false;
+        if ( !m_listenConnectThread.isRunning() ) {
+            m_listenConnectThread.setListenPort(port);
+            m_listenConnectThread.exec();
+        }
+
+        return m_listenConnectThread.isRunning();
     }
 
     bool sendToClient(const STNetIdentify& target, const STString& dataStr)
     {
-        bool ret = false;
-
-        STUNUSED(target);
-        STUNUSED(dataStr);
-
-        return ret;
+        int dataSize = dataStr.size();
+        int ret = write(target.fd(), FrameHeadTag, sizeof(FrameHeadTag));
+        if (-1 != ret) {
+            ret = write(target.fd(), &dataSize, sizeof(dataSize));
+        }
+        if (-1 != ret) {
+            write(target.fd(), dataStr.c_str(), dataSize);
+        }
+        return -1 != ret;
     }
 
 private:
     STNetIdentify getIdViaFd(int fd)
     {
         STNetIdentify ret;
+        ret.setFd(fd);
+
         int port;
 
         struct sockaddr local_addr;
@@ -78,17 +89,18 @@ private:
     }
 
 private://call from the two listen threads
-    void onClientConnected(int fd)
+    void onClientConnected(int fd)//call from listenConnectThread
     {
-        STUNUSED(fd);
+        m_listenDataThread.addFd(fd);
     }
-    void onClientDisConnected(int fd)
+    void onClientDisConnected(int fd)//call from listenDataThread
     {
-        STUNUSED(fd);
+        m_listenDataThread.removeFd(fd);;
     }
-    void onReceivedClientData(const STString& dataStr)
+    void onReceivedClientData(int fd, const STString& dataStr)//call from listenDataThread
     {
-        STUNUSED(dataStr);
+        STEventCarrier e(new STNetEvent(getIdViaFd(fd), dataStr));
+        STObject::postGlobalEvent(e, m_safeReceiver.receiverGuard.isDeleted() ? NULL : m_safeReceiver.receiver);
     }
 
 private:
@@ -130,12 +142,26 @@ private:
     private:
         virtual void fdChanged(int fd, FdChangeType changeType)
         {
-            STUNUSED(fd);
-            STUNUSED(changeType);
+            std::cout<<"STServer::ListenDataThread::fdChanged(), fd:"<<fd<<"changeType:"<<changeType<<std::endl;
+            if (FdChangeType_CanRead == changeType) {
+                m_fdReader.readData(fd);
+                while (m_fdReader.preparedFrameCount() != 0) {
+                    SocketFdReader::FrameInfo dataInfo = m_fdReader.getOneFrameData();
+                    std::cout<<"STServer::ListenDataThread::fdChanged(),oneFrame, dataStr="<<dataInfo.dataStr<<std::endl;
+                    m_owner->onReceivedClientData(dataInfo.fd, dataInfo.dataStr);
+                }
+            }
+            else if (FdChangeType_UnAvailable == changeType) {
+                m_fdReader.clearData(fd);
+                m_owner->onClientDisConnected(fd);
+            }
+            else {
+                //err!!!
+            }
         }
     private:
-        STServer::Impl* m_owner;
-        //std::ma
+        STServer::Impl*     m_owner;
+        SocketFdReader      m_fdReader;
     };
 
 private:
@@ -146,6 +172,8 @@ private:
     ListenConnectThread m_listenConnectThread;
     ListenDataThread    m_listenDataThread;
 };
+
+
 
 void STServer::Impl::ListenConnectThread::main()
 {

@@ -20,13 +20,17 @@ public:
     void setPort(int value);
 
     bool isValid();
+    void clear();
 
     STString toSerialString();
     bool fromSerialString(const STString& serialString);
 
+    int fd() const;
+    void setFd(int fd);
 private:
     STString    m_ip;
     int         m_port;
+    int         m_fd;
 };
 
 

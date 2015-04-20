@@ -4,6 +4,7 @@
 STNetIdentify::STNetIdentify()
     : m_ip("")
     , m_port(-1)
+    , m_fd(-1)
 {
 }
 
@@ -35,9 +36,26 @@ void STNetIdentify::setPort(int value)
     m_port = value;
 }
 
+int STNetIdentify::fd() const
+{
+    return m_fd;
+}
+
+void STNetIdentify::setFd(int fd)
+{
+    m_fd = fd;
+}
+
 bool STNetIdentify::isValid()
 {
     return (m_ip != "") && (m_port > 0);
+}
+
+void STNetIdentify::clear()
+{
+    m_ip = "";
+    m_port = -1;
+    m_fd = -1;
 }
 
 STString STNetIdentify::toSerialString()

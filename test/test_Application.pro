@@ -41,4 +41,5 @@ HEADERS += ../STFramework/include/core/STCoreApplication.h \
     ../STFramework/include/net/STNetEvent.h \
     ../STFramework/include/net/STNetIdentify.h \
     ../STFramework/include/net/STFdListeenerBase.h \
-    ../STFramework/net/SocketFdReader.h
+    ../STFramework/net/SocketFdReader.h \
+    ../STFramework/include/net/STNetDefine.h

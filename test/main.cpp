@@ -242,6 +242,63 @@ void testSTNetIdentify()
     std::cout<<"id1 == id2 is:"<<((id1==id2)? "true" : "false")<<std::endl;
 }
 
+#include "net/STServer.h"
+#include "net/STClient.h"
+#include "net/STNetEvent.h"
+class ServerReceiver : public STObject
+{
+public:
+    virtual void eventHappen(STEventCarrier e)
+    {
+        if (e->name() == STNetEvent::eventName()) {
+            STNetEvent* netEvent = (STNetEvent*)e.get();
+            std::cout<<"ServerReceiver::eventHappen(), sender:"<<netEvent->sender().ip()<<
+                    "<"<<netEvent->sender().port()<<"  dataStr:"<<netEvent->dataStr()<<" atTime:"<<time(NULL)<<std::endl;
+        }
+    }
+};
+class ClientReceiver : public STObject
+{
+public:
+    virtual void eventHappen(STEventCarrier e)
+    {
+        if (e->name() == STNetEvent::eventName()) {
+            STNetEvent* netEvent = (STNetEvent*)e.get();
+            std::cout<<"ClientReceiver::eventHappen(), sender:"<<netEvent->sender().ip()<<
+                    "<"<<netEvent->sender().port()<<"  dataStr:"<<netEvent->dataStr()<<" atTime:"<<time(NULL)<<std::endl;
+        }
+    }
+};
+
+void testNet(int argc, char *argv[])
+{
+    STCoreApplication app(argc, argv);
+
+    if (1 == argc) {
+        std::cout<<"run as server"<<std::endl;
+        ServerReceiver receiver;
+        STServer server("testServer");
+        server.setEventReceiver(&receiver);
+        server.startListen(12345);
+        app.exec();
+    }
+    else if (2 == argc) {
+        std::cout<<"run as client"<<std::endl;
+        ClientReceiver receiver;
+        STClient client("testClient");
+        client.setEventReceiver(&receiver);
+        bool connectRet = client.connectToServer("127.0.0.1", 12345);
+        if (!connectRet) {
+            std::cout<<"connect failed!"<<std::endl;
+        }
+        while (1) {
+            client.sendToServer(STString("hello, from:") + argv[1]);
+            sleep(2);
+        }
+        app.exec();
+    }
+}
+
 int main(int argc, char *argv[])
 {
     STUNUSED(argc);
@@ -254,7 +311,8 @@ int main(int argc, char *argv[])
     //testListErase();
     //testCoreApplication(argc, argv);
     //testDataItem();
-    testSTNetIdentify();
+    //testSTNetIdentify();
+    testNet(argc, argv);
 
     return 0;
 }

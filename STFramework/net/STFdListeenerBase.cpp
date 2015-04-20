@@ -53,6 +53,9 @@ public:
     void addFd(int fd)
     {
         addOneFdTask(fd, FdCmd_Add);
+        if ( !this->isRunning() ) {
+            this->exec();
+        }
     }
 
     void removeFd(int fd)
@@ -191,11 +194,6 @@ void STFdListeenerBase::addFd(int fd)
 void STFdListeenerBase::removeFd(int fd)
 {
     m_impl->removeFd(fd);
-}
-
-bool STFdListeenerBase::startToListen()
-{
-    return m_impl->exec() != STThread::ExecRet_Err;
 }
 
 void STFdListeenerBase::stopListen()
