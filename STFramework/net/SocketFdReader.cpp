@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "base/STCommonDefine.h"
 #include "SocketFdReader.h"
 #include "net/STNetDefine.h"
@@ -14,9 +16,10 @@ SocketFdReader::~SocketFdReader()
     }
 }
 
-void SocketFdReader::readData(int fd)
+int SocketFdReader::readData(int fd)
 {
-    FdData data = m_fdData[fd];
+    int ret = 0;
+    FdData& data = m_fdData[fd];
     if (0 == data.headSize) {
         data.headSize = sizeof(FrameHeadTag) + sizeof(int);
         data.headBuf = new char[data.headSize];
@@ -26,29 +29,49 @@ void SocketFdReader::readData(int fd)
 
     while (1) {
         int readCount = 0;
-        if (data.position < data.bodySize) {
-            readCount = read(fd, data.headBuf+data.position, data.headSize-data.position);
-            data.position += readCount;
-        }
-        else {
-            if (0 >= data.bodySize) {
-                data.bodySize = *( (int*)(data.headBuf + data.headSize-sizeof(int)) );
-                data.bodyBuf = new char[data.bodySize];
-                STDAssert(NULL != data.bodyBuf);
+        if (data.position < (data.headSize-sizeof(int))) {//read head tag
+            readCount = read(fd, data.headBuf+data.position, 1);
+            if (1==readCount && data.headBuf[data.position] == FrameHeadTag[data.position]) {
+                data.position += readCount;
             }
+            else if (1==readCount && data.headBuf[data.position] != FrameHeadTag[data.position]) {
+                data.position = 0;
+                //unrecognize data!!! bug!!!
+            }
+        }
+        else if(data.position < data.headSize) {//read body size
+            readCount = read(fd, data.headBuf+data.position, data.headSize-data.position);
+            if (readCount > 0) {
+                data.position += readCount;
+                if (data.headSize == data.position) {
+                    data.bodySize = *( (int*)(data.headBuf + data.headSize-sizeof(int)) );
+                    data.bodyBuf = new char[data.bodySize];
+                    STDAssert(NULL != data.bodyBuf);
+                }
+            }
+        }
+        else {//read body
             readCount = read(fd, data.bodyBuf + (data.position-data.headSize), data.bodySize - (data.position-data.headSize));
-            data.position += readCount;
+            if (readCount > 0) {
+                data.position += readCount;
+            }
         }
 
+        std::cout<<"SocketFdReader::readData(), data.position:"<<data.position<<"frameSize:"<<data.headSize + data.bodySize<<std::endl;
         if (data.position == data.headSize + data.bodySize) {
             m_frames.push_back( FrameInfo(fd, std::string(data.bodyBuf, data.bodySize)) );
-            data.releaseAllBuf();
+            data.releaseBodyBufAndClearHeadData();
         }
 
         if (readCount <= 0) {
             break;
         }
+        else {
+            ret += readCount;
+        }
     }
+
+    return ret;
 }
 
 void SocketFdReader::clearData(int fd)

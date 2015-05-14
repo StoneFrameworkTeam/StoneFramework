@@ -242,6 +242,116 @@ void testSTNetIdentify()
     std::cout<<"id1 == id2 is:"<<((id1==id2)? "true" : "false")<<std::endl;
 }
 
+
+#include "net/SocketFdReader.h"
+#include "net/STNetDefine.h"
+#include <sys/socket.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+
+void testSocketFdReader(int argc, char *argv[])
+{
+    STCoreApplication app(argc, argv);
+    if (1 == argc) {
+        std::cout<<"run as receiver"<<std::endl;
+        int                 listenfd;
+        int                 connfd;
+        struct sockaddr_in  servaddr;
+
+        if( (listenfd = socket(AF_INET, SOCK_STREAM, 0)) == -1 ){
+            //printf("create socket error: %s(errno: %d)\n",strerror(errno),errno);
+            return;
+        }
+
+        memset(&servaddr, 0, sizeof(servaddr));
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+        servaddr.sin_port = htons(54321);
+
+        if( bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1){
+            //printf("bind socket error: %s(errno: %d)\n",strerror(errno),errno);
+            return;
+        }
+
+        if( listen(listenfd, 10) == -1) {
+            //printf("listen socket error: %s(errno: %d)\n",strerror(errno),errno);
+            return;
+        }
+
+        //"waiting for client's request"
+        while (1) {
+            if( (connfd = accept(listenfd, (struct sockaddr*)NULL, NULL)) == -1){
+                //printf("accept socket error: %s(errno: %d)",strerror(errno),errno);
+                continue;
+            }
+            SocketFdReader reader;
+            while (1) {
+                fcntl(connfd, F_SETFL, fcntl(connfd, F_GETFD, 0)|O_NONBLOCK);
+                reader.readData(connfd);
+                if (reader.preparedFrameCount() > 0) {
+                    SocketFdReader::FrameInfo oneFrame = reader.getOneFrameData();
+                    std::cout<<"received one frame from:"<<oneFrame.fd<<", dataStr:"<<oneFrame.dataStr<<std::endl;
+                }
+                sleep(1);
+            }
+        }
+
+        close(listenfd);
+    }
+    else if (2 == argc) {
+        std::cout<<"run as data sender"<<std::endl;
+
+        STString ip = "127.0.0.1";
+        int port = 54321;
+        struct sockaddr_in server_addr, client_addr;
+        socklen_t socklen = sizeof(server_addr);
+
+        int clientFd = -1;
+        if((clientFd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+        {
+                std::cout<<("create socket error, exit!\n")<<std::endl;
+                return;
+        }
+        srand(time(NULL));
+        bzero(&client_addr, sizeof(client_addr));
+        client_addr.sin_family = AF_INET;
+        client_addr.sin_addr.s_addr = htons(INADDR_ANY);
+
+        bzero(&server_addr, sizeof(server_addr));
+        server_addr.sin_family = AF_INET;
+        inet_aton(ip.c_str(), &server_addr.sin_addr);
+        server_addr.sin_port = htons(port);
+
+        if(connect(clientFd, (struct sockaddr*)&server_addr, socklen) < 0)
+        {
+                std::cout<<"can not connect to "<<argv[1]<<", exit!"<<std::endl;
+                std::cout<<strerror(errno)<<std::endl;
+                return;
+        }
+
+        while (1) {
+            STString msg = "hello, from:";
+            msg += argv[1];
+            int msgSize = msg.size();
+
+            write(clientFd, FrameHeadTag, sizeof(FrameHeadTag));
+            write(clientFd, &msgSize, sizeof(msgSize));
+            write(clientFd, msg.c_str(), msgSize);
+
+            sleep(1);
+        }
+    }
+
+
+    app.exec();
+}
+
 #include "net/STServer.h"
 #include "net/STClient.h"
 #include "net/STNetEvent.h"
@@ -252,8 +362,22 @@ public:
     {
         if (e->name() == STNetEvent::eventName()) {
             STNetEvent* netEvent = (STNetEvent*)e.get();
-            std::cout<<"ServerReceiver::eventHappen(), sender:"<<netEvent->sender().ip()<<
-                    "<"<<netEvent->sender().port()<<"  dataStr:"<<netEvent->dataStr()<<" atTime:"<<time(NULL)<<std::endl;
+            switch (netEvent->type()) {
+            case STNetEvent::Type_ClientConnected:
+                std::cout<<"ServerReceiver::eventHappen(),Type_ClientConnected,sender:"<<netEvent->sender().ip()<<
+                        "<"<<netEvent->sender().port()<<" atTime:"<<time(NULL)<<std::endl;
+                break;
+            case STNetEvent::Type_ClientDisConnect:
+                std::cout<<"ServerReceiver::eventHappen(),Type_ClientDisConnect,sender:"<<netEvent->sender().ip()<<
+                        "<"<<netEvent->sender().port()<<" atTime:"<<time(NULL)<<std::endl;
+                break;
+            case STNetEvent::Type_DataFromClient:
+                std::cout<<"ServerReceiver::eventHappen(),Type_DataFromClient,sender:"<<netEvent->sender().ip()<<
+                        "<"<<netEvent->sender().port()<<"  dataStr:"<<netEvent->dataStr()<<" atTime:"<<time(NULL)<<std::endl;
+                break;
+            default:
+                break;
+            }
         }
     }
 };
@@ -269,6 +393,7 @@ public:
         }
     }
 };
+
 
 void testNet(int argc, char *argv[])
 {
@@ -293,7 +418,7 @@ void testNet(int argc, char *argv[])
         }
         while (1) {
             client.sendToServer(STString("hello, from:") + argv[1]);
-            sleep(2);
+            sleep(1);
         }
         app.exec();
     }
@@ -312,6 +437,7 @@ int main(int argc, char *argv[])
     //testCoreApplication(argc, argv);
     //testDataItem();
     //testSTNetIdentify();
+    //testSocketFdReader(argc, argv);
     testNet(argc, argv);
 
     return 0;

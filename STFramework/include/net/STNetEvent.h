@@ -25,9 +25,15 @@ public:
 public:
     STNetEvent(const STNetIdentify& sender, const STString& dataStr)
         : STEvent(eventName())
-        , m_type(Type_Count)
+        , m_type(Type_DataFromClient)
         , m_sender(sender)
         , m_data(dataStr)
+    {}
+    STNetEvent(const STNetIdentify& sender, Type type)
+        : STEvent(eventName())
+        , m_type(type)
+        , m_sender(sender)
+        , m_data("")
     {}
 
     ~STNetEvent(){}

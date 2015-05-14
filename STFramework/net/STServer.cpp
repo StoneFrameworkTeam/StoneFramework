@@ -92,15 +92,28 @@ private://call from the two listen threads
     void onClientConnected(int fd)//call from listenConnectThread
     {
         m_listenDataThread.addFd(fd);
+        STEventCarrier e(new STNetEvent(getIdViaFd(fd), STNetEvent::Type_ClientConnected));
+        postEventToReceiver(e);
     }
     void onClientDisConnected(int fd)//call from listenDataThread
     {
-        m_listenDataThread.removeFd(fd);;
+        m_listenDataThread.removeFd(fd);
+        STEventCarrier e(new STNetEvent(getIdViaFd(fd), STNetEvent::Type_ClientDisConnect));
+        postEventToReceiver(e);
     }
     void onReceivedClientData(int fd, const STString& dataStr)//call from listenDataThread
     {
         STEventCarrier e(new STNetEvent(getIdViaFd(fd), dataStr));
-        STObject::postGlobalEvent(e, m_safeReceiver.receiverGuard.isDeleted() ? NULL : m_safeReceiver.receiver);
+        postEventToReceiver(e);
+    }
+    void postEventToReceiver(const STEventCarrier& e)
+    {
+        if (NULL != m_safeReceiver.receiver && !m_safeReceiver.receiverGuard.isDeleted()) {
+            STObject::postGlobalEvent(e, m_safeReceiver.receiver);
+        }
+        else {
+            STObject::postGlobalEvent(e, NULL);
+        }
     }
 
 private:
@@ -144,16 +157,18 @@ private:
         {
             std::cout<<"STServer::ListenDataThread::fdChanged(), fd:"<<fd<<"changeType:"<<changeType<<std::endl;
             if (FdChangeType_CanRead == changeType) {
-                m_fdReader.readData(fd);
+                int readCount = m_fdReader.readData(fd);
+                std::cout<<"STServer::ListenDataThread::fdChanged(), fd:"<<fd<<"readCount:"<<readCount<<std::endl;
+                if (0 == readCount) {
+                    //client disconnected
+                    m_fdReader.clearData(fd);
+                    m_owner->onClientDisConnected(fd);
+                }
                 while (m_fdReader.preparedFrameCount() != 0) {
                     SocketFdReader::FrameInfo dataInfo = m_fdReader.getOneFrameData();
                     std::cout<<"STServer::ListenDataThread::fdChanged(),oneFrame, dataStr="<<dataInfo.dataStr<<std::endl;
                     m_owner->onReceivedClientData(dataInfo.fd, dataInfo.dataStr);
                 }
-            }
-            else if (FdChangeType_UnAvailable == changeType) {
-                m_fdReader.clearData(fd);
-                m_owner->onClientDisConnected(fd);
             }
             else {
                 //err!!!

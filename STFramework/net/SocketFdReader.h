@@ -24,7 +24,7 @@ public:
     SocketFdReader();
     ~SocketFdReader();
 
-    void readData(int fd);
+    int readData(int fd);
     void clearData(int fd);
 
     int preparedFrameCount();
@@ -40,6 +40,16 @@ private:
         char*   bodyBuf;
 
         int     position;
+
+        void releaseBodyBufAndClearHeadData()
+        {
+            if (NULL != bodyBuf) {
+                delete[] bodyBuf;
+                bodyBuf = NULL;
+            }
+            bodySize = 0;
+            position = 0;
+        }
 
         void releaseAllBuf()
         {

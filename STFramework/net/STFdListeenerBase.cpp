@@ -52,10 +52,12 @@ public:
 
     void addFd(int fd)
     {
-        addOneFdTask(fd, FdCmd_Add);
         if ( !this->isRunning() ) {
+            checkAndOpenPipe();
             this->exec();
         }
+        setnonblocking(fd);
+        addOneFdTask(fd, FdCmd_Add);
     }
 
     void removeFd(int fd)
@@ -72,6 +74,15 @@ public:
             this->join();//wait read data thread exit
         }
 
+    }
+
+    bool setnonblocking(int sockfd)
+    {
+        if (fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFD, 0)|O_NONBLOCK) == -1)
+        {
+            return false;
+        }
+        return true;
     }
 
     void main()
@@ -93,6 +104,11 @@ public:
 
         while (1) {
             int n = epoll_wait(efd, eventArr, MaxEventCount, -1);
+            if (-1 == n) {
+                continue;//error happend!
+            }
+            //must deal task first.
+            std::vector<int> removedFds;
             for(int i=0; i<n; i++) {
                 if ((eventArr[i].data.fd == m_cmdPipe[0]) && (eventArr[i].events & EPOLLIN)) {
                     ThreadCmd cmd = ThreadCmd_Count;
@@ -116,19 +132,31 @@ public:
                                 break;
                             case FdCmd_Remove:
                                 epoll_ctl(efd, EPOLL_CTL_DEL, m_fdTask[j].fd, NULL);
+                                removedFds.push_back(m_fdTask[j].fd);
                                 break;
                             default:
                                 break;
                             }
                         }
+                        m_fdTask.clear();
                         m_fdTaskLock.unlock();
                     }
+                    break;
                 }
-                else if (eventArr[i].events & EPOLLIN) {
-                    m_owner->fdChanged(eventArr[i].data.fd, STFdListeenerBase::FdChangeType_CanRead);
-                }
-                else if (eventArr[i].events & EPOLLHUP) {
-                    m_owner->fdChanged(eventArr[i].data.fd, STFdListeenerBase::FdChangeType_UnAvailable);
+            }
+            //just notify not removed fd.
+            for(int i=0; i<n; i++) {
+                if ((eventArr[i].data.fd != m_cmdPipe[0]) && eventArr[i].events & EPOLLIN) {
+                    bool isRemoved = false;
+                    for(int j=0; j<removedFds.size(); ++j) {
+                        if (removedFds[i] == eventArr[i].data.fd) {
+                            isRemoved = true;
+                            break;
+                        }
+                    }
+                    if (!isRemoved) {
+                        m_owner->fdChanged(eventArr[i].data.fd, STFdListeenerBase::FdChangeType_CanRead);
+                    }
                 }
             }
         }
