@@ -4,6 +4,8 @@
 #include "base/STCommonDefine.h"
 #include "base/STPtr.h"
 
+
+//the key is Ip and port
 class STNetIdentify
 {
 public:
@@ -12,20 +14,23 @@ public:
 
     bool operator ==(const STNetIdentify&other);
 
-    STString name() const;
-    void setName(const STString& value);
     STString ip() const;
     void setIp(const STString& value);
     int port() const;
     void setPort(int value);
 
+    bool isValid();
+    void clear();
+
     STString toSerialString();
     bool fromSerialString(const STString& serialString);
 
+    int fd() const;
+    void setFd(int fd);
 private:
-    STString    m_name;
     STString    m_ip;
     int         m_port;
+    int         m_fd;
 };
 
 

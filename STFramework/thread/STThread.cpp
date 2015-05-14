@@ -8,7 +8,6 @@ class STThread::PrivateData
 public:
     STString        name;
     bool            isRunning;
-    bool            isNeedStop;
     pthread_t       threadNo;
     pthread_attr_t  threadAttr;//not use, but I will use it latter
 
@@ -50,7 +49,7 @@ STThread::STThread(const STString& name)
 STThread::~STThread()
 {
     if (m_data->isRunning) {
-        askAndWaitToStop(1);
+        forceThreadStop();
         join();
     }
 }
@@ -88,29 +87,12 @@ void STThread::join()
     }
 }
 
-void STThread::askToStop()
+void STThread::forceThreadStop()
 {
-    m_data->isNeedStop = true;
-}
-
-void STThread::askAndWaitToStop(int s)
-{
-    askToStop();
-    STWaiter waiter;
-    int waitTime = s;//ms
-    if (m_data->isRunning && waitTime > 0) {
-        waiter.wait(1);
-        waitTime -= 1;
-    }
     if (m_data->isRunning) {
         pthread_cancel(m_data->threadNo);
         dealAfterKill();
     }
-}
-
-bool STThread::isNeedStop() const
-{
-    return m_data->isNeedStop;
 }
 
 bool STThread::isRunning() const
