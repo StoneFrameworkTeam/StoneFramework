@@ -108,6 +108,7 @@ public:
                 continue;//error happend!
             }
             //must deal task first.
+            bool isExitCommand = false;
             std::vector<int> removedFds;
             for(int i=0; i<n; i++) {
                 if ((eventArr[i].data.fd == m_cmdPipe[0]) && (eventArr[i].events & EPOLLIN)) {
@@ -115,6 +116,7 @@ public:
                     if (read(m_cmdPipe[0], &cmd, sizeof(cmd)) > 0) {
                         if (ThreadCmd_Exit == cmd) {
                             //ask thread to exit
+                            isExitCommand = true;
                             break;
                         }
                     }
@@ -144,11 +146,16 @@ public:
                     break;
                 }
             }
+
+            if (isExitCommand) {
+                break;
+            }
+
             //just notify not removed fd.
             for(int i=0; i<n; i++) {
                 if ((eventArr[i].data.fd != m_cmdPipe[0]) && eventArr[i].events & EPOLLIN) {
                     bool isRemoved = false;
-                    for(int j=0; j<removedFds.size(); ++j) {
+                    for(unsigned int j=0; j<removedFds.size(); ++j) {
                         if (removedFds[i] == eventArr[i].data.fd) {
                             isRemoved = true;
                             break;
