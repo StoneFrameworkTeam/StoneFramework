@@ -424,6 +424,31 @@ void testNet(int argc, char *argv[])
     }
 }
 
+#include <tools/STStringTool.h>
+void testStringTool()
+{
+    bool transRet = false;
+    bool transRet2 = false;
+
+    int value = 789455;
+    int value2 = STStringTool::strToInt(STStringTool::intToStr(value, transRet), transRet2);
+    STDAssert(value == value2);
+
+    STString str = "1235778";
+    STString str2 = STStringTool::intToStr(STStringTool::strToInt(str, transRet), transRet2);
+    STDAssert(str == str2);
+
+//    double doubleValue = 3.14159265;
+//    double doubleValue2 = STStringTool::strToDouble(STStringTool::doubleToStr(doubleValue, transRet), transRet2);
+//    STDAssert(doubleValue-doubleValue2 > -0.0001  &&  doubleValue-doubleValue2 < 0.0001);
+
+    STString doubleStr = "3.14159";
+    STString doubleStr2 = STStringTool::doubleToStr(STStringTool::strToDouble(doubleStr, transRet), transRet2);
+    STDAssert(doubleStr == doubleStr2);
+
+
+}
+
 int main(int argc, char *argv[])
 {
     STUNUSED(argc);
@@ -438,7 +463,8 @@ int main(int argc, char *argv[])
     //testDataItem();
     //testSTNetIdentify();
     //testSocketFdReader(argc, argv);
-    testNet(argc, argv);
+    //testNet(argc, argv);
+    testStringTool();
 
     return 0;
 }
