@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unistd.h>
 
 #include "base/STCommonDefine.h"
 #include "SocketFdReader.h"
@@ -29,7 +30,7 @@ int SocketFdReader::readData(int fd)
 
     while (1) {
         int readCount = 0;
-        if (data.position < (data.headSize-sizeof(int))) {//read head tag
+        if (data.position < (int)(data.headSize-sizeof(int))) {//read head tag
             readCount = read(fd, data.headBuf+data.position, 1);
             if (1==readCount && data.headBuf[data.position] == FrameHeadTag[data.position]) {
                 data.position += readCount;
