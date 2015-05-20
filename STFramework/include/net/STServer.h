@@ -5,14 +5,14 @@
 #include "core/STObject.h"
 #include "net/STNetIdentify.h"
 
-class STServer : public STObject
+class STServer
 {
 public:
     STServer(const STString& name);
     ~STServer();
 
     void setEventReceiver(STObject* receiver);//event will send as STNetEvent
-    bool startListen(const STString& ip, int port);//will run another thread to listen
+    bool startListen(int port);//will run another thread to listen
 
     bool sendToClient(const STNetIdentify& target, const STString& dataStr);
 
@@ -22,8 +22,17 @@ private:
     bool operator=(const STServer& other);
 
 private:
+    friend class ListenConnectThread;//listen client's connect action
+    friend class ListenDataThread;//listen data sent from connected client
     class Impl;
     STScopePtr<Impl> m_impl;
 };
 
 #endif // ST_SERVER_H
+
+
+
+
+
+
+

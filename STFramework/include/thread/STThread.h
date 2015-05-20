@@ -6,6 +6,7 @@
 
 class STThread
 {
+public:
 enum ExecRet
 {
     ExecRet_Success = 0,
@@ -26,13 +27,11 @@ public:
     void join();
 
     bool isRunning() const;
-    void askToStop();//ask thread to exit, not wait
-    void askAndWaitToStop(int s=2);//ask and wait thread to exit, second
+    void forceThreadStop();//force stop thread, after that, dealAfterKill() would be called
 
-    bool isNeedStop() const;
     virtual void dealAfterKill() //if exit not normal, this function will be run
     {
-        //you may need free you resource here when exception happen
+        //you may need free you resource here when thread exit not normal
     }
 
 private:

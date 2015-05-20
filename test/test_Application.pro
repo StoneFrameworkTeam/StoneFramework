@@ -9,7 +9,6 @@ CONFIG -= app_bundle
 TEMPLATE = app
 INCLUDEPATH += ../STFramework
 INCLUDEPATH += ../STFramework/include
-
 SOURCES += ./main.cpp \
     ../STFramework/core/STCoreApplication.cpp \
     ../STFramework/core/STObject.cpp \
@@ -22,7 +21,11 @@ SOURCES += ./main.cpp \
     ../STFramework/core/STEventDispatcher.cpp \
     ../STFramework/net/STServer.cpp \
     ../STFramework/net/STClient.cpp \
-    ../STFramework/net/STNetIdentify.cpp
+    ../STFramework/net/STNetIdentify.cpp \
+    ../STFramework/net/STFdListeenerBase.cpp \
+    ../STFramework/net/SocketFdReader.cpp \
+    ../STFramework/tools/STStringTool.cpp
+
 
 HEADERS += ../STFramework/include/core/STCoreApplication.h \
     ../STFramework/include/core/STObject.h \
@@ -39,4 +42,8 @@ HEADERS += ../STFramework/include/core/STCoreApplication.h \
     ../STFramework/include/net/STServer.h \
     ../STFramework/include/net/STClient.h \
     ../STFramework/include/net/STNetEvent.h \
-    ../STFramework/include/net/STNetIdentify.h
+    ../STFramework/include/net/STNetIdentify.h \
+    ../STFramework/include/net/STFdListeenerBase.h \
+    ../STFramework/net/SocketFdReader.h \
+    ../STFramework/include/net/STNetDefine.h \
+    ../STFramework/include/tools/STStringTool.h
