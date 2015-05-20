@@ -1,12 +1,14 @@
-#include "core/STCoreApplication.h"
 #include <iostream>
-#include "base/STWaiter.h"
-#include "thread/STThread.h"
-#include "base/STPtr.h"
 #include <list>
+#include <unistd.h>
+
+#include "core/STCoreApplication.h"
+#include "base/STWaiter.h"
+#include "base/STPtr.h"
 #include "tools/STDataItem.h"
+#include "tools/STStringTool.h"
 #include "net/STNetIdentify.h"
-#include <tools/STStringTool.h>
+#include "thread/STThread.h"
 
 class testThread : public STThread
 {
@@ -365,12 +367,12 @@ public:
         if (e->name() == STNetEvent::eventName()) {
             STNetEvent* netEvent = (STNetEvent*)e.get();
             switch (netEvent->type()) {
-            case STNetEvent::Type_ClientConnected:
-                std::cout<<"ServerReceiver::eventHappen(),Type_ClientConnected,sender:"<<netEvent->sender().ip()<<
+            case STNetEvent::Type_RemoteConnected:
+                std::cout<<"ServerReceiver::eventHappen(),Type_RemoteConnected,sender:"<<netEvent->sender().ip()<<
                         "<"<<netEvent->sender().port()<<" atTime:"<<time(NULL)<<std::endl;
                 break;
-            case STNetEvent::Type_ClientDisConnect:
-                std::cout<<"ServerReceiver::eventHappen(),Type_ClientDisConnect,sender:"<<netEvent->sender().ip()<<
+            case STNetEvent::Type_RemoteDisConnect:
+                std::cout<<"ServerReceiver::eventHappen(),Type_RemoteDisConnect,sender:"<<netEvent->sender().ip()<<
                         "<"<<netEvent->sender().port()<<" atTime:"<<time(NULL)<<std::endl;
                 break;
             case STNetEvent::Type_DataFromClient:
@@ -398,11 +400,23 @@ public:
         static int lastSendInt = 1;
         if (e->name() == STNetEvent::eventName()) {
             STNetEvent* netEvent = (STNetEvent*)e.get();
-            std::cout<<"ClientReceiver::eventHappen(), sender:"<<netEvent->sender().ip()<<
-                    "<"<<netEvent->sender().port()<<"  dataStr:"<<netEvent->dataStr()<<" atTime:"<<time(NULL)<<std::endl;
-            //STDAssert(lastSendInt == STStringTool::strToInt(netEvent->dataStr())-1);
-            lastSendInt += 2;
-            m_client->sendToServer( STStringTool::intToStr(lastSendInt) );
+            switch (netEvent->type()) {
+            case STNetEvent::Type_RemoteDisConnect:
+                std::cout<<"ClientReceiver::eventHappen(), sender:"<<netEvent->sender().ip()<<
+                        "<"<<netEvent->sender().port()<<"  server disconnected"<<" atTime:"<<time(NULL)<<std::endl;
+                break;
+            case STNetEvent::Type_DataFromClient:
+                std::cout<<"ClientReceiver::eventHappen(), sender:"<<netEvent->sender().ip()<<
+                        "<"<<netEvent->sender().port()<<"  dataStr:"<<netEvent->dataStr()<<" atTime:"<<time(NULL)<<std::endl;
+                //STDAssert(lastSendInt == STStringTool::strToInt(netEvent->dataStr())-1);
+                lastSendInt += 2;
+                m_client->sendToServer( STStringTool::intToStr(lastSendInt) );
+                break;
+            default:
+                break;
+            }
+
+
         }
     }
 
@@ -433,7 +447,7 @@ void testNet(int argc, char *argv[])
         receiver.m_client = &client;
         client.setEventReceiver(&receiver);
 
-        bool connectRet = client.connectToServer("127.0.0.1", 12345);
+        bool connectRet = client.connectToServer("10.226.102.102", 12345);
         if (!connectRet) {
             std::cout<<"connect failed!"<<std::endl;
         }
