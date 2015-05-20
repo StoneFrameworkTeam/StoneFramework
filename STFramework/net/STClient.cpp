@@ -99,19 +99,64 @@ protected:
     virtual void fdChanged(int fd, FdChangeType changeType)
     {
         if (STFdListeenerBase::FdChangeType_CanRead == changeType) {
-            m_reader.readData(fd);
-            while (0 != m_reader.preparedFrameCount()) {
-                SocketFdReader::FrameInfo info = m_reader.getOneFrameData();
-                STEventCarrier e(new STNetEvent(m_serverId, info.dataStr));
-                STObject::postGlobalEvent(e, m_safeReceiver.receiverGuard.isDeleted() ? NULL : m_safeReceiver.receiver);
+            int readCount = m_fdReader.readData(fd);
+            if (0 == readCount) {
+                //client disconnected
+                m_serverId.clear();
+                this->stopListen();
+            }
+            while (m_fdReader.preparedFrameCount() != 0) {
+                SocketFdReader::FrameInfo dataInfo = m_fdReader.getOneFrameData();
+                //std::cout<<"STClient::ListenDataThread::fdChanged(),oneFrame, dataStr="<<dataInfo.dataStr<<std::endl;
+                onReceivedClientData(dataInfo.fd, dataInfo.dataStr);
             }
         }
-        else if (STFdListeenerBase::FdChangeType_UnAvailable == changeType) {
-            m_serverId.clear();
-            this->stopListen();
+        else {
+            //err!
         }
     }
 
+private:
+    void onReceivedClientData(int fd, const STString& dataStr)//call from listenDataThread
+    {
+        STEventCarrier e(new STNetEvent(getIdViaFd(fd), dataStr));
+        if (NULL != m_safeReceiver.receiver && !m_safeReceiver.receiverGuard.isDeleted()) {
+            STObject::postGlobalEvent(e, m_safeReceiver.receiver);
+        }
+        else {
+            STObject::postGlobalEvent(e, NULL);
+        }
+    }
+
+    STNetIdentify getIdViaFd(int fd)
+    {
+        STNetIdentify ret;
+        ret.setFd(fd);
+
+        int port;
+
+        struct sockaddr local_addr;
+        socklen_t len = sizeof(sockaddr);
+        if (getsockname(fd, &local_addr, &len) == 0) {
+            struct sockaddr_in* sin = (struct sockaddr_in*)(&local_addr);
+            port = sin->sin_port;
+
+            char addr_buffer[INET_ADDRSTRLEN];
+            void * tmp = &(sin->sin_addr);
+            if (inet_ntop(AF_INET, tmp, addr_buffer, INET_ADDRSTRLEN) != NULL) {
+                ret.setIp(addr_buffer);
+                ret.setPort(port);
+            }
+            else {
+                //"inet_ntop err";
+            }
+        }
+        else {
+            //"getsockname err";
+        }
+
+        return ret;
+    }
 private:
     struct SafeReceiver
     {
@@ -125,7 +170,7 @@ private:
 
 private:
     STNetIdentify   m_serverId;
-    SocketFdReader  m_reader;
+    SocketFdReader  m_fdReader;
     SafeReceiver    m_safeReceiver;
     int             m_clientFd;
 };
