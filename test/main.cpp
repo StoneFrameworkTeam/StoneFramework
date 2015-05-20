@@ -6,6 +6,7 @@
 #include <list>
 #include "tools/STDataItem.h"
 #include "net/STNetIdentify.h"
+#include <tools/STStringTool.h>
 
 class testThread : public STThread
 {
@@ -360,6 +361,7 @@ class ServerReceiver : public STObject
 public:
     virtual void eventHappen(STEventCarrier e)
     {
+        static int lastSendInt = 0;
         if (e->name() == STNetEvent::eventName()) {
             STNetEvent* netEvent = (STNetEvent*)e.get();
             switch (netEvent->type()) {
@@ -372,26 +374,39 @@ public:
                         "<"<<netEvent->sender().port()<<" atTime:"<<time(NULL)<<std::endl;
                 break;
             case STNetEvent::Type_DataFromClient:
+            {
                 std::cout<<"ServerReceiver::eventHappen(),Type_DataFromClient,sender:"<<netEvent->sender().ip()<<
                         "<"<<netEvent->sender().port()<<"  dataStr:"<<netEvent->dataStr()<<" atTime:"<<time(NULL)<<std::endl;
+                STDAssert(lastSendInt == STStringTool::strToInt(netEvent->dataStr())-1);
+                lastSendInt += 2;
+                m_server->sendToClient(netEvent->sender(), STStringTool::intToStr(lastSendInt) );
                 break;
+            }
             default:
                 break;
             }
         }
     }
+
+    STServer* m_server;
 };
 class ClientReceiver : public STObject
 {
 public:
     virtual void eventHappen(STEventCarrier e)
     {
+        static int lastSendInt = 1;
         if (e->name() == STNetEvent::eventName()) {
             STNetEvent* netEvent = (STNetEvent*)e.get();
             std::cout<<"ClientReceiver::eventHappen(), sender:"<<netEvent->sender().ip()<<
                     "<"<<netEvent->sender().port()<<"  dataStr:"<<netEvent->dataStr()<<" atTime:"<<time(NULL)<<std::endl;
+            STDAssert(lastSendInt == STStringTool::strToInt(netEvent->dataStr())-1);
+            lastSendInt += 2;
+            m_client->sendToServer( STStringTool::intToStr(lastSendInt) );
         }
     }
+
+    STClient* m_client;
 };
 
 
@@ -403,28 +418,35 @@ void testNet(int argc, char *argv[])
         std::cout<<"run as server"<<std::endl;
         ServerReceiver receiver;
         STServer server("testServer");
+        receiver.m_server = &server;
+
         server.setEventReceiver(&receiver);
         server.startListen(12345);
+
         app.exec();
     }
     else if (2 == argc) {
         std::cout<<"run as client"<<std::endl;
         ClientReceiver receiver;
         STClient client("testClient");
+
+        receiver.m_client = &client;
         client.setEventReceiver(&receiver);
+
         bool connectRet = client.connectToServer("127.0.0.1", 12345);
         if (!connectRet) {
             std::cout<<"connect failed!"<<std::endl;
         }
-        while (1) {
-            client.sendToServer(STString("hello, from:") + argv[1]);
-            sleep(1);
+        else {
+            client.sendToServer("1");
+            //sleep(1);
         }
+
         app.exec();
     }
 }
 
-#include <tools/STStringTool.h>
+
 void testStringTool()
 {
     bool transRet = false;
@@ -463,8 +485,8 @@ int main(int argc, char *argv[])
     //testDataItem();
     //testSTNetIdentify();
     //testSocketFdReader(argc, argv);
-    //testNet(argc, argv);
-    testStringTool();
+    testNet(argc, argv);
+    //testStringTool();
 
     return 0;
 }
