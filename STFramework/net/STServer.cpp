@@ -8,6 +8,7 @@
 #include "net/STFdListeenerBase.h"
 #include "net/SocketFdReader.h"
 #include "net/STNetEvent.h"
+#include <signal.h>
 
 #include <iostream>
 
@@ -22,7 +23,9 @@ public:
         : m_serverName(name)
         , m_listenConnectThread(name, this)
         , m_listenDataThread(name, this)
-    {}
+    {
+        signal(SIGPIPE, SIG_IGN);
+    }
     ~Impl(){}
 
 
