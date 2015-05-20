@@ -15,8 +15,8 @@ public:
 
     enum Type
     {
-        Type_ClientConnected = 0,
-        Type_ClientDisConnect,
+        Type_RemoteConnected = 0,
+        Type_RemoteDisConnect,
         Type_DataFromClient,
 
         Type_Count

@@ -97,13 +97,13 @@ private://call from the two listen threads
     void onClientConnected(int fd)//call from listenConnectThread
     {
         m_listenDataThread.addFd(fd);
-        STEventCarrier e(new STNetEvent(getIdViaFd(fd), STNetEvent::Type_ClientConnected));
+        STEventCarrier e(new STNetEvent(getIdViaFd(fd), STNetEvent::Type_RemoteConnected));
         postEventToReceiver(e);
     }
     void onClientDisConnected(int fd)//call from listenDataThread
     {
         m_listenDataThread.removeFd(fd);
-        STEventCarrier e(new STNetEvent(getIdViaFd(fd), STNetEvent::Type_ClientDisConnect));
+        STEventCarrier e(new STNetEvent(getIdViaFd(fd), STNetEvent::Type_RemoteDisConnect));
         postEventToReceiver(e);
     }
     void onReceivedClientData(int fd, const STString& dataStr)//call from listenDataThread
