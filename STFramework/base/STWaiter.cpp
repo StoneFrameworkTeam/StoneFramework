@@ -81,63 +81,6 @@ void STWaiter::setHappen()
     sem_post(&m_data->semId);
 }
 
-//STFDWaiter
-STFDWaiter::STFDWaiter(const STString fileName)
-    : m_fileName(fileName)
-    , m_fd(-1)
-{
-}
-
-STFDWaiter::~STFDWaiter()
-{
-    closeFd();
-}
-
-int STFDWaiter::fd()
-{
-    if (0 > m_fd) {
-        m_fd = open(m_fileName.c_str(), O_RDONLY);
-    }
-
-    return m_fd;
-}
-
-STWaitResult STFDWaiter::wait(int time)
-{
-    STWaitResult ret = STWaitResult_Err;
-
-    if (fd() >= 0) {
-        struct timeval timeout = {0UL, 0UL};
-        if (time >= 0) {
-            timeout.tv_sec = time/1000;
-            timeout.tv_usec = (time%1000) * 1000;
-        }
-        fd_set fds;
-        FD_ZERO(&fds);
-        FD_SET(fd(),&fds);
-        int selectRet = select(fd() + 1, &fds, NULL, NULL, time>=0 ? &timeout : NULL);
-        if (0 > selectRet) {
-            ret = STWaitResult_Err;
-        }
-        else if (0 == selectRet) {
-            ret = STWaitResult_Timeout;
-        }
-        else {
-            ret = STWaitResult_Happen;
-        }
-    }
-
-    return ret;
-}
-
-void STFDWaiter::closeFd()
-{
-    if (m_fd >= 0) {
-        close(m_fd);
-        m_fd = -1;
-    }
-}
-
 
 
 

@@ -32,23 +32,4 @@ private:
     STScopePtr<PrivateData> m_data;
 };
 
-class STFDWaiter
-{
-public:
-    STFDWaiter(const STString fileName);
-    ~STFDWaiter();
-
-    int fd();
-    STWaitResult wait(int time = -1);//time:millisecond, <0 mean wait till happen
-    void closeFd();
-
-private:
-    STFDWaiter(const STFDWaiter&);
-private:
-    STString m_fileName;
-    int      m_fd;
-};
-
-
-
 #endif // ST_WAITER_H
