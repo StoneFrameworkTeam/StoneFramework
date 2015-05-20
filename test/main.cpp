@@ -377,7 +377,7 @@ public:
             {
                 std::cout<<"ServerReceiver::eventHappen(),Type_DataFromClient,sender:"<<netEvent->sender().ip()<<
                         "<"<<netEvent->sender().port()<<"  dataStr:"<<netEvent->dataStr()<<" atTime:"<<time(NULL)<<std::endl;
-                STDAssert(lastSendInt == STStringTool::strToInt(netEvent->dataStr())-1);
+                //STDAssert(lastSendInt == STStringTool::strToInt(netEvent->dataStr())-1);
                 lastSendInt += 2;
                 m_server->sendToClient(netEvent->sender(), STStringTool::intToStr(lastSendInt) );
                 break;
@@ -400,7 +400,7 @@ public:
             STNetEvent* netEvent = (STNetEvent*)e.get();
             std::cout<<"ClientReceiver::eventHappen(), sender:"<<netEvent->sender().ip()<<
                     "<"<<netEvent->sender().port()<<"  dataStr:"<<netEvent->dataStr()<<" atTime:"<<time(NULL)<<std::endl;
-            STDAssert(lastSendInt == STStringTool::strToInt(netEvent->dataStr())-1);
+            //STDAssert(lastSendInt == STStringTool::strToInt(netEvent->dataStr())-1);
             lastSendInt += 2;
             m_client->sendToServer( STStringTool::intToStr(lastSendInt) );
         }

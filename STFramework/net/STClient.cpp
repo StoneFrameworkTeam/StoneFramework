@@ -7,6 +7,7 @@
 #include <string.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include "net/STNetDefine.h"
 #include "net/STClient.h"
@@ -20,7 +21,9 @@ class STClient::Impl : public STFdListeenerBase
 public:
     Impl(const STString& name)
         : STFdListeenerBase(ClientListenThreadPrefix + name)
-    {}
+    {
+        signal(SIGPIPE, SIG_IGN);
+    }
 
     void setEventReceiver(STObject* receiver)
     {
