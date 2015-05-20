@@ -140,7 +140,7 @@ private:
 
         struct sockaddr local_addr;
         socklen_t len = sizeof(sockaddr);
-        if (getsockname(fd, &local_addr, &len) == 0) {
+        if (getpeername(fd, &local_addr, &len) == 0) {
             struct sockaddr_in* sin = (struct sockaddr_in*)(&local_addr);
             port = sin->sin_port;
 
