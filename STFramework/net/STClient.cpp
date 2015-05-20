@@ -105,13 +105,14 @@ protected:
             int readCount = m_fdReader.readData(fd);
             if (0 == readCount) {
                 //client disconnected
+                onServerDisConnected(fd);
                 m_serverId.clear();
                 this->stopListen();
             }
             while (m_fdReader.preparedFrameCount() != 0) {
                 SocketFdReader::FrameInfo dataInfo = m_fdReader.getOneFrameData();
                 //std::cout<<"STClient::ListenDataThread::fdChanged(),oneFrame, dataStr="<<dataInfo.dataStr<<std::endl;
-                onReceivedClientData(dataInfo.fd, dataInfo.dataStr);
+                onReceivedServerData(dataInfo.fd, dataInfo.dataStr);
             }
         }
         else {
@@ -120,9 +121,18 @@ protected:
     }
 
 private:
-    void onReceivedClientData(int fd, const STString& dataStr)//call from listenDataThread
+    void onServerDisConnected(int fd)//call from listenDataThread
+    {
+        STEventCarrier e(new STNetEvent(getIdViaFd(fd), STNetEvent::Type_RemoteDisConnect));
+        postEventToReceiver(e);
+    }
+    void onReceivedServerData(int fd, const STString& dataStr)//call from listenDataThread
     {
         STEventCarrier e(new STNetEvent(getIdViaFd(fd), dataStr));
+        postEventToReceiver(e);
+    }
+    void postEventToReceiver(const STEventCarrier& e)
+    {
         if (NULL != m_safeReceiver.receiver && !m_safeReceiver.receiverGuard.isDeleted()) {
             STObject::postGlobalEvent(e, m_safeReceiver.receiver);
         }
