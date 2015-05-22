@@ -1,6 +1,6 @@
 # StoneFramework
 It’s an application framework. Our purpose is an stable and easy-use framework.
-Stable is the most important purpose. When we face an choice between speed and stable, we choose stable.
+Stable is the most important purpose. When we face an choice between speed and stable in design, we choose stable.
 You will found this framework has brief interface and good coding rules. It’s easy to read and use.
 There are some modules in this framework:
 ##Base
