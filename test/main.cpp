@@ -491,7 +491,20 @@ void testIOTools()
     while (1) {
         STString str = STConsoleTool::readOneLine();
 
-        STConsoleTool::write("your input:" + str);
+        STConsoleTool::writeLine("your input:" + str);
+    }
+}
+
+#include "tools/STRandom.h"
+void testRandomTools()
+{
+    for (int i=1; i<=100; ++i) {
+        STConsoleTool::writeLine(STRandom::randomLetterString(i));
+    }
+    STConsoleTool::writeLine("");
+    for (int i=0; i<100; ++i) {
+        STConsoleTool::write( STStringTool::intToStr(STRandom::randomInt(0, 100)) );
+        STConsoleTool::write(", ");
     }
 }
 
@@ -511,7 +524,8 @@ int main(int argc, char *argv[])
     //testSocketFdReader(argc, argv);
     //testNet(argc, argv);
     //testStringTool();
-    testIOTools();
+    //testIOTools();
+    testRandomTools();
 
     return 0;
 }
