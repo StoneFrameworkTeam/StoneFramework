@@ -25,7 +25,8 @@ SOURCES += \
     tools/STDataItem.cpp \
     tools/STStringTool.cpp \
     tools/STIOTools.cpp \
-    tools/STBase64.cpp
+    tools/STBase64.cpp \
+    netext/STServerExt.cpp
 
 
 
@@ -52,7 +53,8 @@ HEADERS += \
     include/tools/STStringTool.h \
     include/tools/STIOTools.h \
     include/tools/STBase64.h \
-    net/SocketFdReader.h
+    net/SocketFdReader.h \
+    include/netext/STServerExt.h
 
 
 
