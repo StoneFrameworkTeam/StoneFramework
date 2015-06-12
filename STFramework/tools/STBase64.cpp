@@ -87,17 +87,23 @@ STBuffer STBase64::decode(const STString &str)
         if (str.at(i)!= '\r' && str.at(i) != '\n') {
             nValue = Base64DecodeTable[(int)str.at(i++)] << 18;
             nValue += Base64DecodeTable[(int)str.at(i++)] << 12;
-            int tmpValue = (nValue & 0x00FF0000) >> 16;
-            ret.append((char*)(&tmpValue), sizeof(tmpValue));
+            char tmpValue = (nValue & 0x00FF0000) >> 16;
+            ret.append(&tmpValue, sizeof(tmpValue));
             if (str.at(i) != '=') {
                 nValue += Base64DecodeTable[(int)str.at(i++)] << 6;
                 tmpValue = (nValue & 0x0000FF00) >> 8;
-                ret.append((char*)(&tmpValue), sizeof(tmpValue));
+                ret.append(&tmpValue, sizeof(tmpValue));
                 if (str.at(i) != '=') {
                     nValue += Base64DecodeTable[(int)str.at(i++)];
                     tmpValue = nValue & 0x000000FF;
-                    ret.append((char*)(&tmpValue), sizeof(tmpValue));
+                    ret.append(&tmpValue, sizeof(tmpValue));
                 }
+                else {
+                    break;
+                }
+            }
+            else {
+                break;
             }
         }
         else {
