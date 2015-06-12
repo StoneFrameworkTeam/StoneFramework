@@ -6,7 +6,7 @@
 class STBuffer
 {
 public:
-    STBuffer(int size);
+    STBuffer(int size=0);
     STBuffer(char* buf, int size);
     ~STBuffer();
 
