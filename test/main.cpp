@@ -72,6 +72,58 @@ void testSharePtr()
 }
 
 
+class TestIntrusiveSharePtrClass
+{
+public:
+    TestIntrusiveSharePtrClass()
+        : m_name("TestIntrusiveSharePtrClass")
+        , m_refCount(0)
+    {
+        std::cout<<("TestIntrusiveSharePtrClass() create")<<std::endl;
+    }
+    ~TestIntrusiveSharePtrClass()
+    {
+        std::cout<<("~TestIntrusiveSharePtrClass() destroy")<<std::endl;
+    }
+
+    void removeRef()
+    {
+        --m_refCount;
+        std::cout<<"TestIntrusiveSharePtrClass::removeRef(), m_refCount="<< m_refCount<<std::endl;
+        if (m_refCount <= 0) {
+            std::cout<<"TestIntrusiveSharePtrClass::removeRef(), m_refCount="<<m_refCount<<", so delete this"<<std::endl;
+            delete this;
+        }
+    }
+
+    void addRef()
+    {
+        ++m_refCount;
+        std::cout<<"TestIntrusiveSharePtrClass::addRef(), m_refCount="<<m_refCount<<std::endl;
+    }
+
+    STString m_name;
+
+private:
+    int m_refCount;
+};
+
+void testIntrusiveSharePtr()
+{
+    TestIntrusiveSharePtrClass* objPtr = new TestIntrusiveSharePtrClass();
+    STIntrusiveSharePtr<TestIntrusiveSharePtrClass> ptr(objPtr);
+    STIntrusiveSharePtr<TestIntrusiveSharePtrClass> ptr1(objPtr);
+
+    {
+        STIntrusiveSharePtr<TestIntrusiveSharePtrClass> ptr2 = ptr;
+        STIntrusiveSharePtr<TestIntrusiveSharePtrClass> ptr3 = ptr2;
+    }
+    STIntrusiveSharePtr<TestIntrusiveSharePtrClass> ptr4 = ptr;
+    STIntrusiveSharePtr<TestIntrusiveSharePtrClass> ptr5 = ptr;
+
+    std::cout<<("testSharePtr(), m_name:")<<( ptr->m_name.c_str())<<std::endl;
+}
+
 
 class TestCoreApplicationThread : public STThread
 {
@@ -542,10 +594,11 @@ int main(int argc, char *argv[])
     //fdwaiterTest();
     //waiterTest();
     //testSharePtr();
+    testIntrusiveSharePtr();
     //testGuard();
     //testListErase();
     //testCoreApplication(argc, argv);
-    testDataItem();
+    //testDataItem();
     //testSTNetIdentify();
     //testSocketFdReader(argc, argv);
     //testNet(argc, argv);
