@@ -141,7 +141,6 @@ private:
 };
 
 
-/*
 //not thread safe
 //T* must implement addRef and removeRef function. obj must delete it's self in removeRef when ref count decline to 0
 template <class T>
@@ -208,7 +207,7 @@ public:
 private:
     T* m_obj;
 };
-*/
+
 
 #endif // ST_PTR_H
 
